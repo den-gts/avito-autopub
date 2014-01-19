@@ -117,6 +117,7 @@ def apply_autopub():
             g.go('https://www.avito.ru/profile/items/old?item_id[]=%s&start' % id_item)
             print "adding item with id '%s' to active list" % id_item
 
+
 def main_loop():
     print "="*40
     print "autopub list:"
@@ -130,8 +131,14 @@ def main_loop():
     actions_num_list = tuple(enumerate(actions_order, 1))
     for number, action in actions_num_list:
         print "%d) %s" % (number, action)
-    choice = int(raw_input('choice action:'))
-    actions[actions_num_list[choice-1][1]]()
+    try:
+        choice = int(raw_input('choice action:'))
+        if not (1 <= choice <= len(actions_order)):
+            raise ValueError
+    except ValueError:
+        print "invalid action number"
+    else:
+        actions[actions_num_list[choice-1][1]]()
 
     main_loop()
 

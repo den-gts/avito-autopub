@@ -1,7 +1,8 @@
 # -*-coding: utf-8 -*-
 from grab import Grab, GrabError, DataNotFound
 import sys
-
+import argparse
+parser = argparse.ArgumentParser(prog="AVITO autopublisher")
 g = Grab()
 
 
@@ -66,7 +67,6 @@ def print_items(items):
         print teamplate % (number, item[0], item[1])
 
 
-
 def ids_form_settings():
     """get items ids from file settings.cfg"""
     try:
@@ -84,6 +84,21 @@ def save_ids(exist_ids):
         settings.writelines(exist_ids)
 
 
+def add_to_settings(items_id):
+    exist_id = ids_form_settings()
+    for item in items_id:
+        if (item[0]) not in exist_id:
+            exist_id.append(item[0])
+    save_ids(exist_id)
+
+
+def check_id(item_id):
+    web_id = [x[0] for x in (get_items('old') + get_items('active'))]
+    if item_id not in web_id:
+        return False
+    return True
+
+
 def add_to_autopub():
     """show all items, promt for adding to autopub list in setting.cfg"""
     old_items = get_items('old')
@@ -91,12 +106,7 @@ def add_to_autopub():
     print "0) exit"
     print "choise item for adding to autopub list:"
     selected = choice_items(active_items+old_items)
-
-    exist_id = ids_form_settings()
-    for item in selected:
-        if (item[0]) not in exist_id:
-            exist_id.append(item[0])
-    save_ids(exist_id)
+    add_to_settings(selected)
 
 
 def items_from_settings():
@@ -110,9 +120,12 @@ def remove_from_setting(items_id):
     """remove item by id from autopub list in setting.cfg"""
     exists_id = ids_form_settings()
     for item_id in items_id:
-        print item_id
-        exists_id.remove(item_id)
+        try:
+            exists_id.remove(item_id)
+        except ValueError:
+            return
     save_ids(exists_id)
+    return True
 
 
 def select_to_remove():
@@ -139,9 +152,9 @@ def main_loop():
     print_items(items_from_settings())
     print "="*40
     actions = {'add': add_to_autopub,
-               'remove': select_to_remove,
-               'apply': apply_autopub,
-               'exit': sys.exit}
+           'remove': select_to_remove,
+           'apply': apply_autopub,
+           'exit': sys.exit}
     actions_order = ['add', 'remove', 'apply', 'exit']
     actions_num_list = tuple(enumerate(actions_order, 1))
     for number, action in actions_num_list:
@@ -157,5 +170,25 @@ def main_loop():
 
     main_loop()
 
+login()
+parser.add_argument("-p", "--apply", dest="apply", action='store_true', help="apply autopub list")
+parser.add_argument("-a", "--add", dest='ids_to_add', action='store', default=[], nargs="+", help='add ids to autopub list')
+parser.add_argument("-r", "--remove", dest='ids_to_remove', action='store', default=[], nargs="+", help='add ids to autopub list')
+namespace = parser.parse_args('--apply  -r 3 4 -a 4 6'.split())
+for item_id in namespace.ids_to_add + namespace.ids_to_remove:
+    if not item_id.isdigit():
+        print 'ERROR: invalid id "%s"' % item_id
+        sys.exit(1)
+checked_ids = []
+for item_id in namespace.ids_to_add:
+    if check_id(item_id):
+        checked_ids.append(item_id)
+    else:
+        print "id '%s' dont exist in avito" % item_id
+
+add_to_settings(checked_ids)
+remove_from_setting(namespace.ids_to_remove)
+
+sys.exit()
 login()
 main_loop()

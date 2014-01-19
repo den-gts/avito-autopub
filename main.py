@@ -32,7 +32,7 @@ def get_items(itemtype):
 
 def choice_items(items):
     selected_items = []
-    show_all_old_items(items)
+    print_items(items)
     choice_numbers = eval(raw_input('choice items: ') + ",")
     print 'you was choice:'
     print choice_numbers
@@ -42,8 +42,8 @@ def choice_items(items):
     return selected_items
 
 
-def show_all_old_items(items):
-    for number, item in enumerate(items):
+def print_items(items):
+    for number, item in enumerate(items, 1):
         print "%d)(%s) %s" % (number, item[0], item[1])
 
 
@@ -79,16 +79,18 @@ def items_from_settings():
     return filter(lambda item: item[0] in ids, all_web_items)
 
 
-def remove_from_setting(item_id):
+def remove_from_setting(items_id):
     exists_id = ids_form_settings()
-    exists_id.remove(str(item_id))
+    for item_id in items_id:
+        print item_id
+        exists_id.remove(item_id)
     save_ids(exists_id)
 
 
 def select_to_remove():
     print "Choice item for remove from autopub list:"
-    for number, item in enumerate(items_from_settings(), 1):
-        print "%d)(%s) %s" % (number, item[0], item[1])
+    settings_items = items_from_settings()
+    selected = choice_items(settings_items)
+    remove_from_setting([x[0] for x in selected])
 
 login()
-select_to_remove()

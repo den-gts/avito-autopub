@@ -174,8 +174,10 @@ if len(sys.argv) == 1:
     main_loop()
 else:
     parser.add_argument("-p", "--apply", dest="apply", action='store_true', help="apply autopub list")
-    parser.add_argument("-a", "--add", dest='ids_to_add', action='store', default=[], nargs="+", help='add ids to autopub list')
-    parser.add_argument("-r", "--remove", dest='ids_to_remove', action='store', default=[], nargs="+", help='add ids to autopub list')
+    parser.add_argument("-a", "--add", dest='ids_to_add', action='store', default=[], nargs="+",
+                        help='add ids to autopub list')
+    parser.add_argument("-r", "--remove", dest='ids_to_remove', action='store', default=[], nargs="+",
+                        help='remove ids from autopub list')
     namespace = parser.parse_args(sys.argv[1:])
     for item_id in namespace.ids_to_add + namespace.ids_to_remove:
         if not item_id.isdigit():

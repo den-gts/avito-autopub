@@ -1,7 +1,7 @@
 # -*-coding: utf-8 -*-
 from grab import Grab
 
-g = Grab(log_file='f:/out.html')
+g = Grab()
 
 
 def login():
@@ -11,11 +11,13 @@ def login():
     g.submit()
 
 
-def get_old_items():
+def get_items(itemtype):
+    """get items from profile.
+    itemtype: 'old' for old items. 'active' for active items"""
     result = []
-    g.go('https://www.avito.ru/profile/items/old')
-    for el in g.doc.select('//*[@id="overForm"]/div/div[2]/div').node_list():
-        item = el.xpath('*/h3/a')[0]
+    g.go('https://www.avito.ru/profile/items/%s' % itemtype)
+    for el in g.doc.select('//*[@id="overForm"]/div/div[2]/*/div[@class="description"]').node_list():
+        item = el.xpath('h3/a')[0]
         item_id = item.get('name')[5:]
         result.append((item_id, item.text))
     return result
@@ -28,16 +30,57 @@ def choice_items(items):
     print 'you was choice:'
     print choice_numbers
     for number in choice_numbers:
-        print items[number]
+        print items[number][1]
         selected_items.append(items[number])
     return selected_items
 
 
 def show_all_old_items(items):
     for number, item in enumerate(items):
-        print number, item[0], item[1]
+        print "%d)(%s) %s" % (number, item[0], item[1])
+
+
+def ids_form_settings():
+    try:
+        with open('settings.cfg', 'r') as settings:
+            exist_id = settings.readlines()
+            return map(lambda x: str(int(x)), exist_id)
+    except IOError:
+        return []
+
+
+def save_ids(exist_ids):
+    exist_ids = [x + '\n' for x in exist_ids]
+    with open('settings.cfg', 'w') as settings:
+        settings.writelines(exist_ids)
+
+
+def add_to_autopub():
+    old_items = get_items('old')
+    active_items = get_items('active')
+    selected = choice_items(active_items+old_items)
+    exist_id = ids_form_settings()
+    for item in selected:
+        if (item[0]) not in exist_id:
+            exist_id.append(item[0])
+    save_ids(exist_id)
+
+
+def items_from_settings():
+    ids = ids_form_settings()
+    all_web_items = get_items('active') + get_items('old')
+    return filter(lambda item: item[0] in ids, all_web_items)
+
+
+def remove_from_setting(item_id):
+    exists_id = ids_form_settings()
+    exists_id.remove(str(item_id))
+    save_ids(exists_id)
+
+
+def select_to_remove():
+    for number, item in enumerate(items_from_settings(), 1):
+        print "%d)(%s) %s" % (number, item[0], item[1])
 
 login()
-old_items = get_old_items()
-for i in choice_items(old_items):
-    print i[0], i[1]
+select_to_remove()

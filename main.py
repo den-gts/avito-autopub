@@ -1,14 +1,19 @@
 # -*-coding: utf-8 -*-
-from grab import Grab
+from grab import Grab, GrabError, DataNotFound
 
 g = Grab()
 
 
 def login():
     g.go('http://www.avito.ru/profile/login')
-    g.set_input('login', 'login')
-    g.set_input('password', 'password')
+    g.set_input('login', 'epifanov.denis@gmail.com')
+    g.set_input('password', 'secret')
     g.submit()
+    try:
+        if g.doc.select('/html/body/div[1]/div[2]/div/div/h2').text() == u'Вход':
+            raise GrabError('Wrong login/password')
+    except DataNotFound:
+        pass
 
 
 def get_items(itemtype):
@@ -79,8 +84,8 @@ def remove_from_setting(item_id):
 
 
 def select_to_remove():
+    print "Choice item for remove from autopub list:"
     for number, item in enumerate(items_from_settings(), 1):
-        print "Choice item for remove from autopub list:"
         print "%d)(%s) %s" % (number, item[0], item[1])
 
 login()

@@ -5,6 +5,12 @@ g = Grab()
 
 
 def login():
+    """login to avito.ru. Login and password will get from login.cfg.
+    format login.cfg: first row - login, second - password.
+    etc:
+    admin@admin.ru
+    megapassword
+    """
     with open('login.cfg') as logincfg:
         logindata = logincfg.readlines()
     g.go('http://www.avito.ru/profile/login')
@@ -31,6 +37,7 @@ def get_items(itemtype):
 
 
 def choice_items(items):
+    """promt user for choice item or items. always return list of items"""
     selected_items = []
     print_items(items)
     choice_numbers = eval(raw_input('choice items: ') + ",")
@@ -43,11 +50,13 @@ def choice_items(items):
 
 
 def print_items(items):
+    """print items for choise etc."""
     for number, item in enumerate(items, 1):
         print "%d)(%s) %s" % (number, item[0], item[1])
 
 
 def ids_form_settings():
+    """get items ids from file settings.cfg"""
     try:
         with open('settings.cfg', 'r') as settings:
             exist_id = settings.readlines()
@@ -57,14 +66,17 @@ def ids_form_settings():
 
 
 def save_ids(exist_ids):
+    """save items ids to file settings.cfg"""
     exist_ids = [x + '\n' for x in exist_ids]
     with open('settings.cfg', 'w') as settings:
         settings.writelines(exist_ids)
 
 
 def add_to_autopub():
+    """show all items, promt for adding to autopub list in setting.cfg"""
     old_items = get_items('old')
     active_items = get_items('active')
+    print "choise item for adding to autopub list:"
     selected = choice_items(active_items+old_items)
     exist_id = ids_form_settings()
     for item in selected:
@@ -74,12 +86,14 @@ def add_to_autopub():
 
 
 def items_from_settings():
+    """return items from autopub list in settings.cfg file"""
     ids = ids_form_settings()
     all_web_items = get_items('active') + get_items('old')
     return filter(lambda item: item[0] in ids, all_web_items)
 
 
 def remove_from_setting(items_id):
+    """remove item by id from autopub list in setting.cfg"""
     exists_id = ids_form_settings()
     for item_id in items_id:
         print item_id
@@ -88,9 +102,11 @@ def remove_from_setting(items_id):
 
 
 def select_to_remove():
+    """show items from autopub list, promt for removing from list and remove selected items ids"""
     print "Choice item for remove from autopub list:"
     settings_items = items_from_settings()
     selected = choice_items(settings_items)
     remove_from_setting([x[0] for x in selected])
 
 login()
+add_to_autopub()

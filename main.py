@@ -6,8 +6,8 @@ g = Grab()
 
 def login():
     g.go('http://www.avito.ru/profile/login')
-    g.set_input('login', 'epifanov.denis@gmail.com')
-    g.set_input('password', 'secret')
+    g.set_input('login', 'login')
+    g.set_input('password', 'password')
     g.submit()
 
 
@@ -80,6 +80,7 @@ def remove_from_setting(item_id):
 
 def select_to_remove():
     for number, item in enumerate(items_from_settings(), 1):
+        print "Choice item for remove from autopub list:"
         print "%d)(%s) %s" % (number, item[0], item[1])
 
 login()

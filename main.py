@@ -45,7 +45,7 @@ def choice_items(items):
     print 'you was choice:'
     for number in choice_numbers:
         print items[number][1]
-        selected_items.append(items[number -1])
+        selected_items.append(items[number - 1])
     return selected_items
 
 
@@ -109,15 +109,24 @@ def select_to_remove():
     remove_from_setting([x[0] for x in selected])
 
 
+def apply_autopub():
+    settings_ids = ids_form_settings()
+    web_old_ids = [item[0] for item in get_items('old')]
+    for id_item in settings_ids:
+        if id_item in web_old_ids:
+            g.go('https://www.avito.ru/profile/items/old?item_id[]=%s&start' % id_item)
+            print "adding item with id '%s' to active list" % id_item
+
 def main_loop():
-    print "="*30
-    print "autopublist:"
+    print "="*40
+    print "autopub list:"
     print_items(items_from_settings())
     print "="*40
     actions = {'add': add_to_autopub,
                'remove': select_to_remove,
+               'apply': apply_autopub,
                'exit': sys.exit}
-    actions_order = ['add', 'remove', 'exit']
+    actions_order = ['add', 'remove', 'apply', 'exit']
     actions_num_list = tuple(enumerate(actions_order, 1))
     for number, action in actions_num_list:
         print "%d) %s" % (number, action)

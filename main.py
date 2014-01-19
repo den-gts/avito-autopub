@@ -5,9 +5,11 @@ g = Grab()
 
 
 def login():
+    with open('login.cfg') as logincfg:
+        logindata = logincfg.readlines()
     g.go('http://www.avito.ru/profile/login')
-    g.set_input('login', 'epifanov.denis@gmail.com')
-    g.set_input('password', 'secret')
+    g.set_input('login', logindata[0])
+    g.set_input('password', logindata[1])
     g.submit()
     try:
         if g.doc.select('/html/body/div[1]/div[2]/div/div/h2').text() == u'Вход':

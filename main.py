@@ -1,5 +1,6 @@
 # -*-coding: utf-8 -*-
 from grab import Grab, GrabError, DataNotFound
+import sys
 
 g = Grab()
 
@@ -42,10 +43,9 @@ def choice_items(items):
     print_items(items)
     choice_numbers = eval(raw_input('choice items: ') + ",")
     print 'you was choice:'
-    print choice_numbers
     for number in choice_numbers:
         print items[number][1]
-        selected_items.append(items[number])
+        selected_items.append(items[number -1])
     return selected_items
 
 
@@ -108,5 +108,23 @@ def select_to_remove():
     selected = choice_items(settings_items)
     remove_from_setting([x[0] for x in selected])
 
+
+def main_loop():
+    print "="*30
+    print "autopublist:"
+    print_items(items_from_settings())
+    print "="*40
+    actions = {'add': add_to_autopub,
+               'remove': select_to_remove,
+               'exit': sys.exit}
+    actions_order = ['add', 'remove', 'exit']
+    actions_num_list = tuple(enumerate(actions_order, 1))
+    for number, action in actions_num_list:
+        print "%d) %s" % (number, action)
+    choice = int(raw_input('choice action:'))
+    actions[actions_num_list[choice-1][1]]()
+
+    main_loop()
+
 login()
-add_to_autopub()
+main_loop()

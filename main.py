@@ -41,18 +41,30 @@ def choice_items(items):
     """promt user for choice item or items. always return list of items"""
     selected_items = []
     print_items(items)
-    choice_numbers = eval(raw_input('choice items: ') + ",")
+    try:
+        choice_numbers = eval(raw_input('choice items: ') + ",")
+    except StandardError:
+        print 'invalid choice number'
+        return choice_items(items)
+    if choice_numbers == 0:
+        return main_loop()
     print 'you was choice:'
-    for number in choice_numbers:
-        print items[number][1]
-        selected_items.append(items[number - 1])
-    return selected_items
+    try:
+        for number in choice_numbers:
+            print items[number][1]
+            selected_items.append(items[number - 1])
+        return selected_items
+    except IndexError:
+        print 'invalid choice number'
+        choice_items(items)
 
 
 def print_items(items):
     """print items for choise etc."""
+    teamplate = "%d)(%s) %s"
     for number, item in enumerate(items, 1):
-        print "%d)(%s) %s" % (number, item[0], item[1])
+        print teamplate % (number, item[0], item[1])
+
 
 
 def ids_form_settings():
@@ -76,8 +88,10 @@ def add_to_autopub():
     """show all items, promt for adding to autopub list in setting.cfg"""
     old_items = get_items('old')
     active_items = get_items('active')
+    print "0) exit"
     print "choise item for adding to autopub list:"
     selected = choice_items(active_items+old_items)
+
     exist_id = ids_form_settings()
     for item in selected:
         if (item[0]) not in exist_id:
@@ -105,6 +119,7 @@ def select_to_remove():
     """show items from autopub list, promt for removing from list and remove selected items ids"""
     print "Choice item for remove from autopub list:"
     settings_items = items_from_settings()
+    print "0) exit"
     selected = choice_items(settings_items)
     remove_from_setting([x[0] for x in selected])
 

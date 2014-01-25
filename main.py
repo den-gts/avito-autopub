@@ -47,12 +47,12 @@ def choice_items(items):
     except StandardError:
         print 'invalid choice number'
         return choice_items(items)
-    if choice_numbers == 0:
+    if 0 in choice_numbers:
         return main_loop()
     print 'you was choice:'
     try:
         for number in choice_numbers:
-            print items[number][1]
+            print items[number - 1][1]
             selected_items.append(items[number - 1])
         return selected_items
     except IndexError:
@@ -170,27 +170,29 @@ def main_loop():
 
     main_loop()
 
-if len(sys.argv) == 1:
-    main_loop()
-else:
-    parser.add_argument("-p", "--apply", dest="apply", action='store_true', help="apply autopub list")
-    parser.add_argument("-a", "--add", dest='ids_to_add', action='store', default=[], nargs="+",
-                        help='add ids to autopub list')
-    parser.add_argument("-r", "--remove", dest='ids_to_remove', action='store', default=[], nargs="+",
-                        help='remove ids from autopub list')
-    namespace = parser.parse_args(sys.argv[1:])
-    for item_id in namespace.ids_to_add + namespace.ids_to_remove:
-        if not item_id.isdigit():
-            print 'ERROR: invalid id "%s"' % item_id
-            sys.exit(1)
-    checked_ids = []
-    login()
-    for item_id in namespace.ids_to_add:
-        if check_id(item_id):
-            checked_ids.append(item_id)
-        else:
-            print "id '%s' dont exist in avito" % item_id
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        login()
+        main_loop()
+    else:
+        parser.add_argument("-p", "--apply", dest="apply", action='store_true', help="apply autopub list")
+        parser.add_argument("-a", "--add", dest='ids_to_add', action='store', default=[], nargs="+",
+                            help='add ids to autopub list')
+        parser.add_argument("-r", "--remove", dest='ids_to_remove', action='store', default=[], nargs="+",
+                            help='remove ids from autopub list')
+        namespace = parser.parse_args(sys.argv[1:])
+        for item_id in namespace.ids_to_add + namespace.ids_to_remove:
+            if not item_id.isdigit():
+                print 'ERROR: invalid id "%s"' % item_id
+                sys.exit(1)
+        checked_ids = []
+        login()
+        for item_id in namespace.ids_to_add:
+            if check_id(item_id):
+                checked_ids.append(item_id)
+            else:
+                print "id '%s' dont exist in avito" % item_id
 
-    add_to_settings(checked_ids)
-    remove_from_setting(namespace.ids_to_remove)
+        add_to_settings(checked_ids)
+        remove_from_setting(namespace.ids_to_remove)
 

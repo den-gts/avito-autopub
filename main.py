@@ -196,3 +196,6 @@ if __name__ == '__main__':
         add_to_settings(checked_ids)
         remove_from_setting(namespace.ids_to_remove)
 
+        if namespace.apply:  # if -p, -apply apply autpub list
+            apply_autopub()
+

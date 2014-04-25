@@ -2,6 +2,7 @@
 from grab import Grab, GrabError, DataNotFound
 import sys
 import argparse
+import os
 parser = argparse.ArgumentParser(prog="AVITO autopublisher")
 g = Grab()
 
@@ -13,8 +14,12 @@ def login():
     admin@admin.ru
     megapassword
     """
-    with open('login.cfg') as logincfg:
-        logindata = logincfg.readlines()
+    if os.path.exists('login.cfg'):
+        with open('login.cfg') as logincfg:
+            logindata = logincfg.readlines()
+    else:
+        print "please create login.cfg file. 1st row login, 2nd row password"
+        sys.exit()
     g.go('http://www.avito.ru/profile/login')
     g.set_input('login', logindata[0])
     g.set_input('password', logindata[1])

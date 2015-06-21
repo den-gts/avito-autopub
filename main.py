@@ -31,7 +31,7 @@ def get_items(itemtype):
     itemtype: 'old' for old items. 'active' for active items"""
     result = []
     g.go('https://www.avito.ru/profile/items/%s' % itemtype)
-    for el in g.doc.select('//*[@id="overForm"]/div/div[2]/*/div[@class="description"]').node_list():
+    for el in g.doc.select('//*[@id="overForm"]/div/div[2]//div[@class="description"]').node_list():
         item = el.xpath('h3/a')[0]
         item_id = item.get('name')[5:]
         result.append((item_id, item.text))

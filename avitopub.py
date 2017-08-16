@@ -3,6 +3,8 @@ from grab import Grab, GrabError, DataNotFound
 import sys
 import argparse
 import os
+
+from lxml import html
 parser = argparse.ArgumentParser(prog="AVITO autopublisher")
 g = Grab()
 
@@ -18,7 +20,7 @@ def login():
         with open('login.cfg') as logincfg:
             logindata = logincfg.readlines()
     else:
-        print "please create login.cfg file. 1st row login, 2nd row password"
+        print("please create login.cfg file. 1st row login, 2nd row password")
         sys.exit()
     g.go('http://www.avito.ru/profile/login')
     g.set_input('login', logindata[0])
@@ -36,8 +38,12 @@ def get_items(itemtype):
     itemtype: 'old' for old items. 'active' for active items"""
     result = []
     g.go('https://www.avito.ru/profile/items/%s' % itemtype)
-    for el in g.doc.select('//*[@id="overForm"]/div/div[2]//div[@class="description"]').node_list():
-        item = el.xpath('h3/a')[0]
+
+    root = html.fromstring(g.doc.body)
+    with open('output.html', 'w') as fp:
+        fp.write(g.doc.body.decode())
+    for el in root.xpath('//h3[@class="profile-item-title"]'):
+        item = el.xpath('a')[0]
         item_id = item.get('name')[5:]
         result.append((item_id, item.text))
     return result
@@ -47,29 +53,28 @@ def choice_items(items):
     """promt user for choice item or items. always return list of items"""
     selected_items = []
     print_items(items)
-    try:
-        choice_numbers = eval(raw_input('choice items: ') + ",")
-    except StandardError:
-        print 'invalid choice number'
+    choice_numbers = input('choice items(separate items with ","): ').split(',')
+    if not choice_numbers:
+        print('invalid choice number')
         return choice_items(items)
     if 0 in choice_numbers:
         return main_loop()
-    print 'you was choice:'
+    print('you was choice:')
     try:
         for number in choice_numbers:
-            print items[number - 1][1]
-            selected_items.append(items[number - 1])
+            print(items[int(number) - 1][1])
+            selected_items.append(items[int(number) - 1])
         return selected_items
     except IndexError:
-        print 'invalid choice number'
+        print('invalid choice number')
         choice_items(items)
 
 
 def print_items(items):
     """print items for choise etc."""
-    teamplate = "%d)(%s) %s"
+    template = "%d)(%s) %s"
     for number, item in enumerate(items, 1):
-        print teamplate % (number, item[0], item[1])
+        print(template % (number, item[0], item[1]))
 
 
 def ids_form_settings():
@@ -108,8 +113,8 @@ def add_to_autopub():
     """show all items, promt for adding to autopub list in setting.cfg"""
     old_items = get_items('old')
     active_items = get_items('active')
-    print "0) exit"
-    print "choise item for adding to autopub list:"
+    print("0) exit")
+    print("choise item for adding to autopub list:")
     selected = choice_items(active_items+old_items)
     add_to_settings(selected)
 
@@ -135,9 +140,9 @@ def remove_from_setting(items_id):
 
 def select_to_remove():
     """show items from autopub list, promt for removing from list and remove selected items ids"""
-    print "Choice item for remove from autopub list:"
+    print("Choice item for remove from autopub list:")
     settings_items = items_from_settings()
-    print "0) exit"
+    print("0) exit")
     selected = choice_items(settings_items)
     remove_from_setting([x[0] for x in selected])
 
@@ -148,14 +153,14 @@ def apply_autopub():
     for id_item in settings_ids:
         if id_item in web_old_ids:
             g.go('https://www.avito.ru/profile/items/old?item_id[]=%s&start' % id_item)
-            print "adding item with id '%s' to active list" % id_item
+            print("adding item with id '%s' to active list" % id_item)
 
 
 def main_loop():
-    print "="*40
-    print "autopub list:"
+    print("="*40)
+    print("autopub list:")
     print_items(items_from_settings())
-    print "="*40
+    print("="*40)
     actions = {'add': add_to_autopub,
            'remove': select_to_remove,
            'apply': apply_autopub,
@@ -163,19 +168,20 @@ def main_loop():
     actions_order = ['add', 'remove', 'apply', 'exit']
     actions_num_list = tuple(enumerate(actions_order, 1))
     for number, action in actions_num_list:
-        print "%d) %s" % (number, action)
+        print("%d) %s" % (number, action))
     try:
-        choice = int(raw_input('choice action:'))
+        choice = int(input('choice action:'))
         if not (1 <= choice <= len(actions_order)):
             raise ValueError
     except ValueError:
-        print "invalid action number"
+        print("invalid action number")
     else:
         actions[actions_num_list[choice-1][1]]()
 
     main_loop()
 
-if __name__ == '__main__':
+
+def main():
     if len(sys.argv) == 1:
         login()
         main_loop()
@@ -188,7 +194,7 @@ if __name__ == '__main__':
         namespace = parser.parse_args(sys.argv[1:])
         for item_id in namespace.ids_to_add + namespace.ids_to_remove:
             if not item_id.isdigit():
-                print 'ERROR: invalid id "%s"' % item_id
+                print('ERROR: invalid id "%s"' % item_id)
                 sys.exit(1)
         checked_ids = []
         login()
@@ -196,7 +202,7 @@ if __name__ == '__main__':
             if check_id(item_id):
                 checked_ids.append(item_id)
             else:
-                print "id '%s' dont exist in avito" % item_id
+                print("id '%s' dont exist in avito" % item_id)
 
         add_to_settings(checked_ids)
         remove_from_setting(namespace.ids_to_remove)
@@ -204,3 +210,5 @@ if __name__ == '__main__':
         if namespace.apply:  # if -p, -apply apply autpub list
             apply_autopub()
 
+if __name__ == '__main__':
+    main()
